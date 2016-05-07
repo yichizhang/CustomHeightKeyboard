@@ -3,7 +3,7 @@
 //  CustomHeightKeyboard
 //
 //  Created by Yichi on 3/10/2015.
-//  Copyright © 2015 Yichi. All rights reserved.
+//  Copyright (c) 2015-present Yichi. All rights reserved.
 //
 
 import UIKit
@@ -12,6 +12,7 @@ class KeyboardViewController: UIInputViewController
 {
     @IBOutlet var nextKeyboardButton: UIButton!
     var heightConstraint: NSLayoutConstraint!
+    var nextKeyboardButtonLeftSideConstraint: NSLayoutConstraint!
 
     override func updateViewConstraints()
     {
@@ -29,53 +30,48 @@ class KeyboardViewController: UIInputViewController
     {
         super.viewDidLoad()
 
-        // Perform custom UI setup here
-        self.nextKeyboardButton = UIButton(type: .System)
-
-        self.nextKeyboardButton.setTitle(NSLocalizedString("Next Keyboard", comment: "Title for 'Next Keyboard' button"), forState: .Normal)
-        self.nextKeyboardButton.sizeToFit()
-        self.nextKeyboardButton.translatesAutoresizingMaskIntoConstraints = false
-
-        self.nextKeyboardButton.addTarget(self, action: "advanceToNextInputMode", forControlEvents: .TouchUpInside)
-
-        self.view.addSubview(self.nextKeyboardButton)
+        nextKeyboardButton = UIButton(type: .System)
+        nextKeyboardButton.setTitle(
+            NSLocalizedString("Next Keyboard", comment: "Title for 'Next Keyboard' button"),
+            forState: .Normal)
+        nextKeyboardButton.sizeToFit()
+        nextKeyboardButton.translatesAutoresizingMaskIntoConstraints = false
+        nextKeyboardButton.addTarget(
+            self,
+            action: #selector(advanceToNextInputMode),
+            forControlEvents: .TouchUpInside)
+        view.addSubview(nextKeyboardButton)
     }
 
     override func viewDidAppear(animated: Bool)
     {
         super.viewDidAppear(animated)
 
-        let nextKeyboardButtonLeftSideConstraint = NSLayoutConstraint(item: self.nextKeyboardButton, attribute: .Left, relatedBy: .Equal, toItem: self.view, attribute: .Left, multiplier: 1.0, constant: 0.0)
-        let nextKeyboardButtonBottomConstraint = NSLayoutConstraint(item: self.nextKeyboardButton, attribute: .Bottom, relatedBy: .Equal, toItem: self.view, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
-        self.view.addConstraints([nextKeyboardButtonLeftSideConstraint, nextKeyboardButtonBottomConstraint])
-    }
-
-    override func didReceiveMemoryWarning()
-    {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated
-    }
-
-    override func textWillChange(textInput: UITextInput?)
-    {
-        // The app is about to change the document's contents. Perform any preparation here.
-    }
-
-    override func textDidChange(textInput: UITextInput?)
-    {
-        // The app has just changed the document's contents, the document context has been updated.
-
-        var textColor: UIColor
-        let proxy = self.textDocumentProxy
-        if proxy.keyboardAppearance == UIKeyboardAppearance.Dark {
-            textColor = UIColor.whiteColor()
+        // Set up constraints for next keyboard button in view did appear
+        if nextKeyboardButtonLeftSideConstraint == nil {
+            nextKeyboardButtonLeftSideConstraint = NSLayoutConstraint(
+                item: nextKeyboardButton,
+                attribute: .Left,
+                relatedBy: .Equal,
+                toItem: view,
+                attribute: .Left,
+                multiplier: 1.0,
+                constant: 0.0)
+            let nextKeyboardButtonBottomConstraint = NSLayoutConstraint(
+                item: nextKeyboardButton,
+                attribute: .Bottom,
+                relatedBy: .Equal,
+                toItem: view,
+                attribute: .Bottom,
+                multiplier: 1.0,
+                constant: 0.0)
+            view.addConstraints([
+                nextKeyboardButtonLeftSideConstraint,
+                nextKeyboardButtonBottomConstraint])
         }
-        else {
-            textColor = UIColor.blackColor()
-        }
-        self.nextKeyboardButton.setTitleColor(textColor, forState: .Normal)
     }
 
+    // MARK: Set up height constraint
     func setUpHeightConstraint()
     {
         let customHeight = UIScreen.mainScreen().bounds.height / 2
@@ -88,12 +84,33 @@ class KeyboardViewController: UIInputViewController
                                                   attribute: .NotAnAttribute,
                                                   multiplier: 1,
                                                   constant: customHeight)
-            heightConstraint.priority = UILayoutPriority(999)
+            heightConstraint.priority = UILayoutPriority(UILayoutPriorityRequired)
 
             view.addConstraint(heightConstraint)
         }
         else {
             heightConstraint.constant = customHeight
         }
+    }
+
+    // MARK: Text related
+    override func textWillChange(textInput: UITextInput?)
+    {
+        // The app is about to change the document's contents. Perform any preparation here.
+    }
+
+    override func textDidChange(textInput: UITextInput?)
+    {
+        // The app has just changed the document's contents, the document context has been updated.
+
+        var textColor: UIColor
+        let proxy = textDocumentProxy
+        if proxy.keyboardAppearance == UIKeyboardAppearance.Dark {
+            textColor = UIColor.whiteColor()
+        }
+        else {
+            textColor = UIColor.blackColor()
+        }
+        nextKeyboardButton.setTitleColor(textColor, forState: .Normal)
     }
 }
